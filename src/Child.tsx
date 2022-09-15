@@ -1,11 +1,21 @@
 import { getRandomColor } from "./randomColorGenerator";
 
-function Child({ onChangeColor }) {
+interface Props {
+  onChangeColor(newChildColor: string): void;
+  color: string;
+}
+
+function Child({ onChangeColor, color }: Props) {
+  function handleClick() {
+    const newColor = getRandomColor();
+    onChangeColor(newColor);
+  }
+
   return (
     <div
-      onClick={onChangeColor}
+      onClick={handleClick}
       className="child"
-      style={{ backgroundColor: "#FFF" }}
+      style={{ backgroundColor: color }}
     />
   );
 }
