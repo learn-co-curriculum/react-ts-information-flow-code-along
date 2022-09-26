@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { getRandomColor } from "./randomColorGenerator.js";
+import { useState } from "react";
+import { getRandomColor } from "./randomColorGenerator";
 import Child from "./Child";
 
 function Parent() {

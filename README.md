@@ -26,10 +26,13 @@ it.
 
 ## Getting Started
 
-Assuming you've pulled down the starter code and ran `npm install` and
-`npm start`, you should see a few rectangles in your browser. The large outer
-rectangle will be a random color every time you refresh the page, but the two
-smaller rectangles inside will always have a white background.
+Assuming you pulled down the starter code and ran `npm install` and `npm start`,
+you should see a few TypeScript errors being thrown in the browser. That's okay,
+you will fix those as you continue through this code along. Feel free to click
+the 'X' in the top right corner to close them out for the time being. Now, you
+should see rectangles in your browser. The large outer rectangle will be a
+random color every time you refresh the page, but the two smaller rectangles
+inside will always have a white background.
 
 Take a moment to familiarize yourself with the code base. We have a simple
 application that renders a single `Parent` component and two `Child` components.
@@ -47,13 +50,13 @@ App
 - When either `Child` component is clicked, the `Parent` component should change
   color.
 
-`src/randomColorGenerator.js` has a helper function `getRandomColor()`
+`src/randomColorGenerator.ts` has a helper function `getRandomColor()`
 implemented for you that generates a random color.
 
 ### Changing the color of Parent
 
 The `Parent` component has a state variable called `color` that is initially set
-to a random color. To update state, we'll create a simple `handleChangeColor`
+to a random color. To update state, we'll create a simple `handleChangeColor()`
 function:
 
 ```jsx
@@ -61,7 +64,7 @@ function Parent() {
   const randomColor = getRandomColor();
   const [color, setColor] = useState(randomColor); // initial value for color state
 
-  function handleChangeColor() {
+  function handleChangeColor()() {
     const newRandomColor = getRandomColor();
     setColor(newRandomColor); // update color state to a new value
   }
@@ -88,19 +91,45 @@ return (
 );
 ```
 
-Now, `Child` will have a prop called `onChangeColor` that is a _function_.
+With these changes, all but one of the TypeScript errors should be resolved now
+that `Child` will have a prop called `onChangeColor` that is a _function_.
 Specifically, it is the same function object as our `Parent`'s
-`handleChangeColor` function. Want to see for yourself? Put a `console.log`
+`handleChangeColor()` function. Want to see for yourself? Put a `console.log`
 inside the `Child` component.
 
 ```jsx
 function Child({ onChangeColor }) {
   console.log(onChangeColor);
-  return <div className="child" style={{ backgroundColor: "#FFF" }} />;
+  return (
+    <div
+      onClick={onChangeColor}
+      className="child"
+      style={{ backgroundColor: "#FFF" }}
+    />;
+  )
 }
 ```
 
-We can now use this `onChangeColor` prop as an event handler:
+We can now fix the remaining TypeScript error that, rightfully, won't leave us
+alone. Let's type the prop with an interface. `onChangeColor` is a function with
+no return. We learned about this return type before, can you recall what it is?
+
+If you thought [`void`][void type], you're correct! Let's use that to create our
+`Props` interface:
+
+```ts
+interface Props {
+  onChangeColor(): void;
+}
+```
+
+We can now use this to type our `Child` props:
+
+```jsx
+function Child({ onChangeColor}: Props)
+```
+
+With typing done, we can use the `onChangeColor` prop as an event handler:
 
 ```jsx
 console.log(onChangeColor);
@@ -121,8 +150,8 @@ Let's walk though those steps:
 - When the `div` in the `Child` component is clicked, it will use the
   `onChangeColor` variable to determine what function to run
 - `onChangeColor` is a prop that is passed down from the `Parent` component,
-  which references the `handleChangeColor` function
-- The `handleChangeColor` function is the function that will actually run when
+  which references the `handleChangeColor()` function
+- The `handleChangeColor()` function is the function that will actually run when
   the `div` is clicked, and will update state in the `Parent` component
 
 Now, let's add one more feature!
@@ -169,7 +198,8 @@ return (
 );
 ```
 
-Now let's actually use that props data in the `Child` component:
+Now let's actually use that props data in the `Child` component. We can replace
+the hard coded `backgroundColor` to use the `color` prop:
 
 ```jsx
 function Child({ onChangeColor, color }) {
@@ -183,19 +213,66 @@ function Child({ onChangeColor, color }) {
 }
 ```
 
+Uh-oh, TypeScript's warning us again! Because we added a new prop, we need to
+type it as well so our component knows exactly what to expect. Let's add it to
+our interface. This time, we're not passing down a function, the `color` prop is
+just passing down a string:
+
+```ts
+// Child.tsx
+interface Props {
+  onChangeColor(): void;
+  color: string;
+}
+```
+
 Lastly, we have to update the `handleChangeColor()` function in `Parent` to
 change not just the `color` state, but also the `childrenColor`. To practice
-sending data _back_ to the parent, let's change our `handleChangeColor` to take
-in an argument of `newChildColor` and then use that variable to update the state
-of the `Child` component:
+sending data _back_ to the parent, let's change our `handleChangeColor()` to
+take in an argument of `newChildColor` and then use that variable to update the
+state of the `Child` component:
 
 ```jsx
+// Parent.tsx
 function handleChangeColor(newChildColor) {
   const newRandomColor = getRandomColor();
   setColor(newRandomColor);
   setChildrenColor(newChildColor);
 }
 ```
+
+Oh no! TypeScript is warning us of something again. It says:
+
+`TS2322: Type '(newChildColor: any) => void' is not assignable to type '() => void'.`
+
+on the line:
+
+`<Child color={childrenColor} onChangeColor={handleChangeColor} />`
+
+This is because we've now added a parameter to the `handleChangeColor()`
+function that we didn't tell TypeScript about yet. Let's fix that by first
+specifying what we expect the parameter type to be. In this case, we expect it
+to be a color code, which will be a `string`.
+
+```jsx
+// Parent.tsx
+function handleChangeColor(newChildColor: string) {
+  // ...
+}
+```
+
+That still doesn't remove the error, because now we have to tell the `Child`'s
+`Prop` interface about this new change:
+
+```ts
+interface Props {
+  onChangeColor(newChildColor: string): void;
+  color: string;
+}
+```
+
+That error is now gone! But now we have a whole new error. That's okay, we're
+going to fix that next.
 
 Now that the function takes in an argument, we can create a new function in our
 `Child` component that invokes `onChangeColor` and passes in a random color as
@@ -220,8 +297,8 @@ function Child({ onChangeColor, color }) {
 ```
 
 Wow! Check out the finished product in the browser! When either `Child`
-component is clicked, the `Parent` changes to a random color, and both
-`Child` components change to a different random color.
+component is clicked, the `Parent` changes to a random color, and both `Child`
+components change to a different random color.
 
 ## Conclusion
 
@@ -238,6 +315,14 @@ We can only communicate up and down the component tree. So if multiple
 components need to share the same information, that state should live in the
 parent component (or a more general ancestor).
 
+The larger your projects get, the more unweildy this can get. If you find
+yourself getting lost in your own code, don't worry you're not alone! It may be
+a good idea to sketch out a component tree and track where data begins and
+flows. Find what planning and organizational tactics work for you.
+
 ## Resources
 
 - [Lifting State Up](https://reactjs.org/docs/lifting-state-up.html)
+
+[void type]:
+  https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions
