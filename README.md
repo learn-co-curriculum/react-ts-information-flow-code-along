@@ -26,13 +26,13 @@ it.
 
 ## Getting Started
 
-Assuming you've pulled down the starter code and ran `npm install` and
-`npm start`, you should see a few TypeScript errors being thrown in the browser.
-That's okay, you will fix those as you continue through this code along. Feel
-free to click the 'X' in the top right corner to close them out for the time
-being. Now, you should see rectangles in your browser. The large outer rectangle
-will be a random color every time you refresh the page, but the two smaller
-rectangles inside will always have a white background.
+Assuming you pulled down the starter code and ran `npm install` and `npm start`,
+you should see a few TypeScript errors being thrown in the browser. That's okay,
+you will fix those as you continue through this code along. Feel free to click
+the 'X' in the top right corner to close them out for the time being. Now, you
+should see rectangles in your browser. The large outer rectangle will be a
+random color every time you refresh the page, but the two smaller rectangles
+inside will always have a white background.
 
 Take a moment to familiarize yourself with the code base. We have a simple
 application that renders a single `Parent` component and two `Child` components.
@@ -56,7 +56,7 @@ implemented for you that generates a random color.
 ### Changing the color of Parent
 
 The `Parent` component has a state variable called `color` that is initially set
-to a random color. To update state, we'll create a simple `handleChangeColor`
+to a random color. To update state, we'll create a simple `handleChangeColor()`
 function:
 
 ```jsx
@@ -64,7 +64,7 @@ function Parent() {
   const randomColor = getRandomColor();
   const [color, setColor] = useState(randomColor); // initial value for color state
 
-  function handleChangeColor() {
+  function handleChangeColor()() {
     const newRandomColor = getRandomColor();
     setColor(newRandomColor); // update color state to a new value
   }
@@ -91,19 +91,26 @@ return (
 );
 ```
 
-Now, `Child` will have a prop called `onChangeColor` that is a _function_.
+With these changes, all but one of the TypeScript errors should be resolved now
+that `Child` will have a prop called `onChangeColor` that is a _function_.
 Specifically, it is the same function object as our `Parent`'s
-`handleChangeColor` function. Want to see for yourself? Put a `console.log`
+`handleChangeColor()` function. Want to see for yourself? Put a `console.log`
 inside the `Child` component.
 
 ```jsx
 function Child({ onChangeColor }) {
   console.log(onChangeColor);
-  return <div className="child" style={{ backgroundColor: "#FFF" }} />;
+  return (
+    <div
+      onClick={onChangeColor}
+      className="child"
+      style={{ backgroundColor: "#FFF" }}
+    />;
+  )
 }
 ```
 
-We can now fix one of the TypeScript errors that, rightfully, won't leave us
+We can now fix the remaining TypeScript error that, rightfully, won't leave us
 alone. Let's type the prop with an interface. `onChangeColor` is a function with
 no return. We learned about this return type before, can you recall what it is?
 
@@ -143,8 +150,8 @@ Let's walk though those steps:
 - When the `div` in the `Child` component is clicked, it will use the
   `onChangeColor` variable to determine what function to run
 - `onChangeColor` is a prop that is passed down from the `Parent` component,
-  which references the `handleChangeColor` function
-- The `handleChangeColor` function is the function that will actually run when
+  which references the `handleChangeColor()` function
+- The `handleChangeColor()` function is the function that will actually run when
   the `div` is clicked, and will update state in the `Parent` component
 
 Now, let's add one more feature!
@@ -221,9 +228,9 @@ interface Props {
 
 Lastly, we have to update the `handleChangeColor()` function in `Parent` to
 change not just the `color` state, but also the `childrenColor`. To practice
-sending data _back_ to the parent, let's change our `handleChangeColor` to take
-in an argument of `newChildColor` and then use that variable to update the state
-of the `Child` component:
+sending data _back_ to the parent, let's change our `handleChangeColor()` to
+take in an argument of `newChildColor` and then use that variable to update the
+state of the `Child` component:
 
 ```jsx
 // Parent.tsx
@@ -242,10 +249,10 @@ on the line:
 
 `<Child color={childrenColor} onChangeColor={handleChangeColor} />`
 
-This is because we've now added a parameter to the `handleChangeColor` function
-that we didn't tell TypeScript about yet. Let's fix that by first specifying
-what we expect the parameter type to be. In this case, we expect it to be a
-color code, which will be a `string`.
+This is because we've now added a parameter to the `handleChangeColor()`
+function that we didn't tell TypeScript about yet. Let's fix that by first
+specifying what we expect the parameter type to be. In this case, we expect it
+to be a color code, which will be a `string`.
 
 ```jsx
 // Parent.tsx
